@@ -1,6 +1,6 @@
 /*
  * Replace the following string of 0s with your student number
- * 000000000
+ * 230057999
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -69,6 +69,59 @@ int joblog_init(proc_t* proc) {
  * - see job.h for a function to create a job from its string representation
  */
 job_t* joblog_read(proc_t* proc, int entry_num, job_t* job) {
+
+    // If no process
+    if (!proc) {
+        return NULL;
+    }
+
+    // If negative entry number
+    if (entry_num<0) {
+        return NULL;
+    }
+
+    // If no job dynamically allocate one
+    if (!job) {
+        job=(job_t*)malloc(sizeof(job_t));
+    }
+
+    // Generate log name
+    char*log_name = new_log_name(proc);
+
+    // If no file name generated
+    if (!log_name) {
+        return NULL;
+    }
+
+    // Attempt open file
+    FILE* fp = fopen(log_name, "r");
+
+    // If fail to open file
+    if (!fp) {
+        errno=0;
+        free(log_name);
+        return NULL;
+    }
+
+    // Init 
+    char* entry = NULL;
+    size_t len = 0;
+    ssize_t read = 0;
+    size_t count = 0;
+
+    // Iterate through file / while not at end of file
+    while ((read=getline(&entry, &len, fp)) != -1) {
+        // If found
+        if (count==entry_num) {
+            sscanf(entry,JOB_STR_FMT,&job->pid,&job->id,&job->priority,job->label);
+            return job;
+            }
+        // Increment count
+        count ++;
+    }
+
+    fclose(fp);
+    // returns null if entry_num > file size and subsequently nothing found
     return NULL;
 }
 
@@ -79,12 +132,55 @@ job_t* joblog_read(proc_t* proc, int entry_num, job_t* job) {
  * - see the hint for joblog_read
  */
 void joblog_write(proc_t* proc, job_t* job) {
-    return;
+
+    if (!proc || !job) {
+        return;
+    }
+
+    // Pointer to log name
+    char*log_name = new_log_name(proc);
+
+    // If no file name generated
+    if (!log_name) {
+        return;
+    }
+
+    // Open files
+    FILE* fp = fopen(log_name, "a");
+
+    // If fail to open file
+    if (!fp) {
+        free(log_name);
+        return;
+    }
+
+    // Storing string
+    char log_line[JOB_STR_SIZE];
+
+    // Format log line
+    snprintf(log_line, JOB_STR_SIZE, JOB_STR_FMT, job->pid, job->id, job->priority, job->label);
+
+    // Write in file
+    fprintf(fp,"%s\n",log_line);
+
+    // Close the file
+    fclose(fp);
+
+    // Free log
+    free(log_name);
+
 }
 
 /* 
  * TODO: you must implement this function.
  */
 void joblog_delete(proc_t* proc) {
-    return;
+    // Check proc if exists
+    if (!proc) {
+        return;
+    }
+
+    // Delete file
+    unlink(new_log_name(proc));
+
 }
