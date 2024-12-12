@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/sofiafrench/Desktop/2035/CSC2035_CW2/csc2035-assignment1-r01",
+      "program": "/Users/sofiafrench/Desktop/2035/CSC2035_CW2/csc2035-assignment1-r01/build/Debug/outDebug"
+    }
+  ]
+}

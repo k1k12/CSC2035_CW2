@@ -23,14 +23,20 @@ job_t* job_copy(job_t* src, job_t* dst) {
     // If src null, else if src=dst, else if 
     if (!src) {
         return NULL;
-    } else if (strlen(src->label)!=MAX_NAME_SIZE-1) {
+    } 
+    
+    if (strlen(src->label)!=MAX_NAME_SIZE-1) {
         return NULL;
-    } else if (!dst) {
+    } 
+    
+    if (!dst) {
         // Allocate new job
         job_t* job = (job_t* )malloc(sizeof(job_t));
         *job = *src;
         return job;
-    } else if (src==dst) {
+    } 
+    
+    if (src==dst) {
         // Return either pointer
         return src;
     }
@@ -70,13 +76,7 @@ bool job_is_equal(job_t* j1, job_t* j2) {
     }
 
     // Compare j1 and j2
-    if (j1->pid == j2->pid & j1->id==j2->id & j1->priority==j2->priority &
-     strncmp(j1->label, j2->label, MAX_NAME_SIZE) ==0) {
-        // J1 is equal to j2
-        return true;
-    }
-
-    return false;
+    return ((j1->pid == j2->pid) & (j1->id==j2->id) & (j1->priority==j2->priority) & (strncmp(j1->label, j2->label, MAX_NAME_SIZE) ==0));
 }
 
 /*

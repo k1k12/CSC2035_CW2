@@ -1,9 +1,10 @@
 /*
  * Replace the following string of 0s with your student number
- * 000000000
+ * 230057999
  */
 #include <stdlib.h>
 #include <stdbool.h>
+#include <errno.h>
 #include "pri_jobqueue.h"
 
 /* 
@@ -13,14 +14,36 @@
  * - see job_new in job.c
  */
 pri_jobqueue_t* pri_jobqueue_new() {
-    return NULL;
+
+    // Dynamically allocate memory
+    pri_jobqueue_t* pjq = (pri_jobqueue_t*)malloc(sizeof(pri_jobqueue_t));
+    
+    // If call fails because pjq is null
+    if (!pjq) {
+        // On failure return NULL
+        return NULL;
+    }
+
+    // Init pjq
+    pri_jobqueue_init(pjq);
+
+    return pjq;
 }
 
 /* 
  * TODO: you must implement this function.
  */
 void pri_jobqueue_init(pri_jobqueue_t* pjq) {
-    return;
+
+    // Set fields
+    pjq->buf_size=JOB_BUFFER_SIZE;
+    pjq->size=0;
+    // Iterating through jobs
+    for (int i = 0; i < pjq->buf_size; i++) {
+        // Init job
+        job_init(&pjq->jobs[i]);
+    }   
+
 }
 
 /* 
@@ -33,7 +56,65 @@ void pri_jobqueue_init(pri_jobqueue_t* pjq) {
  *      that was on the queue
  */
 job_t* pri_jobqueue_dequeue(pri_jobqueue_t* pjq, job_t* dst) {
-    return NULL;
+
+    // If pjq is null or empty
+    if (!pjq) {
+        return NULL;
+    }
+
+    if(pri_jobqueue_is_empty(pjq)){
+        return NULL;
+    }
+
+    // If dst is null
+    if (!dst) {
+        // Dynamically allocate memory
+        dst = (job_t*)malloc(sizeof(job_t));
+        // If call fails
+        if (!dst) {
+            return NULL;
+        }
+    }
+
+    // Create index and job_lp var
+    int index = -1;
+    int job_lp = -1;
+
+    // Iterate through to find highest priority job
+    for (int i = 0; i < pjq->buf_size; i++) {
+        job_t *job=&pjq->jobs[i];
+        // If job_lp not set
+        if (job_lp==-1) {
+            job_lp=job->priority;
+            index=i;
+        }
+        // If slot empty
+        if (job->priority>0 && job->priority < job_lp) {
+            // Set priority
+            job_lp=job->priority;
+            // Set index
+            index=i;
+        }
+    }
+
+    // Set dst
+    job_copy(&pjq->jobs[index],dst);
+    // Init high priority job
+    job_init(&pjq->jobs[index]);
+    // Decrement size
+    pjq->size--;
+    // Ensure queue in right order
+    // Iterate through to find highest priority job
+    for (int i = index; i < pjq->buf_size-1; i++) {
+        // Set index
+        pjq->jobs[i] = pjq->jobs[i+1];
+    }
+
+    // Init last item
+    job_init(&pjq->jobs[pjq->buf_size-1]);
+
+    // Return dst pointer
+    return dst;
 }
 
 /* 
@@ -50,22 +131,72 @@ job_t* pri_jobqueue_dequeue(pri_jobqueue_t* pjq, job_t* dst) {
  *      queue
  */
 void pri_jobqueue_enqueue(pri_jobqueue_t* pjq, job_t* job) {
-    return;
+
+    // If pjq null or job pointer null or if invalid job priority (not int or lower/equal to 0)
+    if (!pjq || !job) {
+        return;
+    }
+
+    // If pjq full
+    if (pri_jobqueue_is_full(pjq)) {
+        return;
+    }
+
+    if (job->priority <= 0) {
+        return;
+    }
+
+    // Iterate through
+    for (int i = 0; i < pjq->buf_size; i++) {
+        // If slot empty
+        if (pjq->jobs[i].priority==0) {
+            // Add job to queue
+            job_copy(job,&pjq->jobs[i]);
+            // Increment number of jobs in q
+            pjq->size++;
+            // Return
+            return;
+        }
+    }  
+
 }
    
 /* 
  * TODO: you must implement this function.
  */
 bool pri_jobqueue_is_empty(pri_jobqueue_t* pjq) {
-    return true;
+    // If queue null or if no jobs in the queue
+    if (!pjq) {
+        return true;
+    }
+
+    if (pjq->size==0){
+        return true;
+    }
+
+    // Else
+    return false;
 }
 
 /* 
  * TODO: you must implement this function.
  */
 bool pri_jobqueue_is_full(pri_jobqueue_t* pjq) {
-    return true;
-}
+
+    // If queue null or queue size equals buffer size
+    if (!pjq) {
+        return true;
+    }
+    
+    // If size = buf size
+    if (pjq->size==pjq->buf_size) {
+        return true;
+    }
+
+    // Else
+    return false;
+    
+    }
 
 /* 
  * TODO: you must implement this function.
@@ -76,21 +207,76 @@ bool pri_jobqueue_is_full(pri_jobqueue_t* pjq) {
  *      the highest priority job on the queue
  */
 job_t* pri_jobqueue_peek(pri_jobqueue_t* pjq, job_t* dst) {
-    return NULL;
+
+    // If pjq null or queue is empty
+    if (!pjq || pri_jobqueue_is_empty(pjq)) {
+        return NULL;
+    }
+
+    // If dst is null
+    if (!dst) {
+        // Dynamically allocate memory
+        dst = (job_t*)malloc(sizeof(job_t));
+    }
+
+    job_t job_lp;
+
+    // Iterate through
+    for (int i = 0; i < pjq->buf_size; i++) {
+        job_t job=pjq->jobs[i];
+        // Find highest priority job
+        if (job.priority>0 && job.priority < job_lp.priority) {
+            job_lp = job;
+        }
+    }
+
+    // Copy to and return dst
+    job_copy(&job_lp,dst);
+    return dst;
+
 }
 
 /* 
  * TODO: you must implement this function.
  */
 int pri_jobqueue_size(pri_jobqueue_t* pjq) {
-    return 0;
+
+    // If pjq null
+    if (!pjq) {
+        // No space
+        return 0;
+    }
+
+    // Create counter var
+    int count = 0;
+
+    // Iterate through
+    for (int i = 0; i < pjq->buf_size; i++) {
+        // If slot empty
+        if (pjq->jobs[i].priority>0) {
+            // Increment count for job
+            count++;
+        }
+    }  
+
+    return count;
+
 }
 
 /* 
  * TODO: you must implement this function.
  */
 int pri_jobqueue_space(pri_jobqueue_t* pjq) {
-    return 0;
+
+    // If pjq null
+    if (!pjq) {
+        // No space
+        return 0;
+    }
+
+    // Return buf size - size
+    return pjq->buf_size-pri_jobqueue_size(pjq);
+
 }
 
 /* 
@@ -99,5 +285,14 @@ int pri_jobqueue_space(pri_jobqueue_t* pjq) {
  *      - see pri_jobqeue_new
  */
 void pri_jobqueue_delete(pri_jobqueue_t* pjq) {
-    return;
+
+    // If pjq is null
+    if (!pjq) {
+        // No effect
+        return;
+    }
+
+    // Free memory allocated to queue
+    free(pjq);
+
 }
