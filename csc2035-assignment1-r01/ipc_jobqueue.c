@@ -31,8 +31,15 @@ job_t* ipc_jobqueue_dequeue(ipc_jobqueue_t* ijq, job_t* dst) {
         return NULL;
     }
 
-    if(ipc_jobqueue_is_empty(ijq)){
+    if (ipc_jobqueue_is_empty(ijq)){
         return NULL;
+    }
+
+    if (!dst) {
+        dst = (job_t *)malloc(sizeof(job_t));
+        if (!dst) {
+            return NULL;
+        }
     }
 
     do_critical_work(ijq->proc);
@@ -48,6 +55,7 @@ job_t* ipc_jobqueue_dequeue(ipc_jobqueue_t* ijq, job_t* dst) {
  */
 void ipc_jobqueue_enqueue(ipc_jobqueue_t* ijq, job_t* job) {
     
+    // Complete checks
     if (!ijq) {
         return;
     }
@@ -68,6 +76,7 @@ void ipc_jobqueue_enqueue(ipc_jobqueue_t* ijq, job_t* job) {
  */
 bool ipc_jobqueue_is_empty(ipc_jobqueue_t* ijq) {
 
+    // Complete checks
     if (!ijq) {
         return true;
     }
@@ -84,6 +93,7 @@ bool ipc_jobqueue_is_empty(ipc_jobqueue_t* ijq) {
  */
 bool ipc_jobqueue_is_full(ipc_jobqueue_t* ijq) {
 
+    // Complete checks
     if (!ijq) {
         return true;
     }
@@ -100,6 +110,7 @@ bool ipc_jobqueue_is_full(ipc_jobqueue_t* ijq) {
  */
 job_t* ipc_jobqueue_peek(ipc_jobqueue_t* ijq, job_t* dst) {
 
+    // Complete checks
     if (!ijq) {
         return NULL;
     }
@@ -116,6 +127,7 @@ job_t* ipc_jobqueue_peek(ipc_jobqueue_t* ijq, job_t* dst) {
  */
 int ipc_jobqueue_size(ipc_jobqueue_t* ijq) {
 
+    // Complete checks
     if (!ijq) {
         return 0;
     }
@@ -132,6 +144,7 @@ int ipc_jobqueue_size(ipc_jobqueue_t* ijq) {
  */
 int ipc_jobqueue_space(ipc_jobqueue_t* ijq) {
 
+    // Complete checks
     if (!ijq) {
         return 0;
     }
@@ -148,6 +161,7 @@ int ipc_jobqueue_space(ipc_jobqueue_t* ijq) {
  */
 void ipc_jobqueue_delete(ipc_jobqueue_t* ijq) {
 
+    // Complete checks
     if (!ijq) {
         return;
     }
