@@ -119,18 +119,18 @@ job_t* sem_jobqueue_dequeue(sem_jobqueue_t* sjq, job_t* dst) {
         return NULL;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
-        return NULL;
-    } 
-    
-    if (sem_wait(sjq->empty)==-1) {
+    if (sem_wait(sjq->full)==-1) {
         return NULL;
     }
+
+    if (sem_wait(sjq->mutex)==-1) {
+        return NULL;
+    } 
 
     // Call ipc correspondant
     ipc_jobqueue_dequeue(sjq->ijq,dst);
 
-    sem_post(sjq->full);
+    sem_post(sjq->empty);
     sem_post(sjq->mutex);
 
     return dst;
@@ -146,13 +146,14 @@ void sem_jobqueue_enqueue(sem_jobqueue_t* sjq, job_t* job) {
         return;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
-        return;
-    }
-    
     if (sem_wait(sjq->empty)==-1) {
         return;
     }
+
+    if (sem_wait(sjq->mutex)==-1) {
+        return;
+    }
+    
 
     // Call ipc correspondant
     ipc_jobqueue_enqueue(sjq->ijq,job);
@@ -195,7 +196,7 @@ bool sem_jobqueue_is_full(sem_jobqueue_t* sjq) {
         return true;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
+    if (sem_wait(sjq->mutex)==-1) {
         return true;
     }
 
@@ -219,7 +220,7 @@ job_t* sem_jobqueue_peek(sem_jobqueue_t* sjq, job_t* dst) {
         return NULL;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
+    if (sem_wait(sjq->mutex)==-1) {
         return NULL;
     }
 
@@ -242,7 +243,7 @@ int sem_jobqueue_size(sem_jobqueue_t* sjq) {
         return 0;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
+    if (sem_wait(sjq->mutex)==-1) {
         return -1;
     }
 
@@ -266,7 +267,7 @@ int sem_jobqueue_space(sem_jobqueue_t* sjq) {
         return 0;
     }
 
-    if (sem_wait(sjq->mutex)!=0) {
+    if (sem_wait(sjq->mutex)==-1) {
         return -1;
     }
 
